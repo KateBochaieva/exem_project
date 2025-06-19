@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <title>Технічна документація: 3D Vector System</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2rem;
+      line-height: 1.6;
+      background-color: #fdfdfd;
+      color: #333;
+    }
+    h1, h2 {
+      color: #2c3e50;
+    }
+    pre {
+      background-color: #f4f4f4;
+      padding: 1em;
+      border-left: 4px solid #3498db;
+      overflow-x: auto;
+    }
+    code {
+      background: #e8e8e8;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+    ul {
+      margin-top: 0;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📄 Технічна документація: 3D Vector System</h1>
+
+  <h2>🔧 Компоненти</h2>
+  <ul>
+    <li><strong>A-Frame</strong> — побудова сцени та об'єктів</li>
+    <li><strong>Three.js</strong> — векторні обчислення (<code>Vector3</code>)</li>
+  </ul>
+
+  <h2>📜 Реєстрація компонентів</h2>
+  <pre><code>AFRAME.registerComponent("vector-demo", { ... });</code></pre>
+  <p>
+    Компонент використовується для генерації координатної сітки, векторів <code>A</code>, <code>B</code>, <code>A+B</code>, <code>A×B</code>, а також обчислення <code>A•B</code>.
+  </p>
+
+  <h2>📈 Вектори</h2>
+  <pre><code>const A = new THREE.Vector3(1, 1, 0);
+const B = new THREE.Vector3(0, 1, -1);
+const sum = A.clone().add(B);
+const cross = A.clone().cross(B);
+const dot = A.dot(B);</code></pre>
+
+  <h2>🖼️ Візуалізація</h2>
+  <ul>
+    <li>Вектори реалізовані через <code>&lt;a-entity&gt;</code> з компонентом <code>line</code></li>
+    <li>Кожен вектор підписаний за допомогою <code>&lt;a-text&gt;</code></li>
+  </ul>
+
+  <h2>🌐 Підтримка</h2>
+  <ul>
+    <li>WebGL (базова підтримка)</li>
+    <li>WebXR (опціонально для VR/AR інтеграцій)</li>
+  </ul>
+
+  <h2>📄 Файл</h2>
+  <p>
+    <a href="examples/3d-vector-system.html">examples/3d-vector-system.html</a> — повна реалізація сцени.
+  </p>
+
+  <h2>📍 Особливості</h2>
+  <ul>
+    <li>Усі вектори починаються з початку координат <code>(0, 0, 0)</code></li>
+    <li>Кожен вектор має унікальний колір для зручності</li>
+    <li>Результати операцій виводяться як текст і як результуючі вектори</li>
+  </ul>
+
+</body>
+</html>
+
+
