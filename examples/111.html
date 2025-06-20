@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Векторна система (площина Oxy)</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        
+        .ui-overlay {
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            flex-shrink: 0;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+        }
+        
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #64b5f6;
+            text-align: center;
+        }
+        
+        .vector-input {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .vector-input input {
+            width: 60px;
+            padding: 5px;
+            border: none;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.9);
+            text-align: center;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+            margin: 2px;
+            width: 100%;
+        }
+        
+        .btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .result-display {
+            background: rgba(76, 175, 80, 0.2);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+        
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        #vectorCanvas {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 10px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            cursor: grab;
+        }
+        
+        #vectorCanvas:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body>
+    <div class="ui-overlay">
+        <div class="controls">
+            <div class="control-group">
+                <h3>🔴 Вектор A</h3>
+                <div class="vector-input">
+                    <input type="number" id="ax" value="" placeholder="X" step="0.5">
+                    <input type="number" id="ay" value="" placeholder="Y" step="0.5">
+                </div>
+                <button class="btn btn-primary" onclick="updateVector('A')">Оновити A</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>🔵 Вектор B</h3>
+                <div class="vector-input">
+                    <input type="number" id="bx" value="" placeholder="X" step="0.5">
+                    <input type="number" id="by" value="" placeholder="Y" step="0.5">
+                </div>
+                <button class="btn btn-primary" onclick="updateVector('B')">Оновити B</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>⚡ Векторні операції</h3>
+                <button class="btn btn-secondary" onclick="performOperation('add')">A + B (Паралелограм)</button>
+                <button class="btn btn-secondary" onclick="performOperation('subtract')">A - B (Трикутник)</button>
+                <button class="btn btn-secondary" onclick="performOperation('dot')">A · B (Скалярний)</button>
+                <button class="btn btn-secondary" onclick="performOperation('cross')">A × B (Векторний)</button>
+                <button class="btn btn-danger" onclick="clearOperations()">Очистити</button>
+            </div>
+            
+            <div class="control-group">
+                <h3>🎯 Приклади</h3>
+                <button class="btn btn-primary" onclick="setExample(1)">A(3,2) B(1,4)</button>
+                <button class="btn btn-primary" onclick="setExample(2)">A(-2,3) B(4,-1)</button>
+                <button class="btn btn-primary" onclick="setExample(3)">A(5,0) B(0,3)</button>
+            </div>
+        </div>
+        
+        <div class="result-display" id="resultDisplay" style="display: none;">
+            <strong>Результат:</strong> <span id="resultText"></span>
+        </div>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="vectorCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <script>
+        // Глобальні змінні
+        let vectorA = null;
+        let vectorB = null;
+        let canvas, ctx;
+        let scale = 30;
+        let centerX, centerY;
+        let isDragging = false;
+        let lastMouseX, lastMouseY;
+        let panX = 0, panY = 0;
+        let currentOperation = null;
+
+        // Ініціалізація
+        document.addEventListener('DOMContentLoaded', function() {
+            canvas = document.getElementById('vectorCanvas');
+            ctx = canvas.getContext('2d');
+            centerX = canvas.width / 2;
+            centerY = canvas.height / 2;
+            
+            setupCanvasEvents();
+            drawScene();
+        });
+
+        // Налаштування подій для canvas
+        function setupCanvasEvents() {
+            canvas.addEventListener('mousedown', startDrag);
+            canvas.addEventListener('mousemove', drag);
+            canvas.addEventListener('mouseup', endDrag);
+            canvas.addEventListener('wheel', zoom);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+        }
+
+        function startDrag(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
+            
+            panX += deltaX;
+            panY += deltaY;
+            
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            
+            drawScene();
+        }
+
+        function endDrag() {
+            isDragging = false;
+        }
+
+        function zoom(e) {
+            e.preventDefault();
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            scale *= zoomFactor;
+            scale = Math.max(10, Math.min(100, scale));
+            drawScene();
+        }
+
+        // Функція для оновлення векторів
+        function updateVector(vectorName) {
+            const inputs = vectorName === 'A' ? 
+                { x: 'ax', y: 'ay' } : 
+                { x: 'bx', y: 'by' };
+            
+            const vector = {
+                x: parseFloat(document.getElementById(inputs.x).value) || 0,
+                y: parseFloat(document.getElementById(inputs.y).value) || 0
+            };
+
+            const allInputsFilled = vector.x !== 0 || vector.y !== 0;
+            
+            if (vectorName === 'A') {
+                vectorA = allInputsFilled ? vector : null;
+            } else {
+                vectorB = allInputsFilled ? vector : null;
+            }
+
+            clearOperations();
+            drawScene();
+        }
+
+        // Функція для встановлення прикладів
+        function setExample(example) {
+            switch(example) {
+                case 1:
+                    document.getElementById('ax').value = '3';
+                    document.getElementById('ay').value = '2';
+                    document.getElementById('bx').value = '1';
+                    document.getElementById('by').value = '4';
+                    break;
+                case 2:
+                    document.getElementById('ax').value = '-2';
+                    document.getElementById('ay').value = '3';
+                    document.getElementById('bx').value = '4';
+                    document.getElementById('by').value = '-1';
+                    break;
+                case 3:
+                    document.getElementById('ax').value = '5';
+                    document.getElementById('ay').value = '0';
+                    document.getElementById('bx').value = '0';
+                    document.getElementById('by').value = '3';
+                    break;
+            }
+            updateVector('A');
+            updateVector('B');
+        }
+
+        // Функція для виконання операцій
+        function performOperation(operation) {
+            if (!vectorA || !vectorB) {
+                showResult("Помилка: Спочатку введіть координати обох векторів!");
+                return;
+            }
+
+            currentOperation = operation;
+            let result;
+            let resultText = '';
+
+            switch (operation) {
+                case 'add':
+                    result = {
+                        x: vectorA.x + vectorB.x,
+                        y: vectorA.y + vectorB.y
+                    };
+                    resultText = `A + B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`;
+                    break;
+
+                case 'subtract':
+                    result = {
+                        x: vectorA.x - vectorB.x,
+                        y: vectorA.y - vectorB.y
+                    };
+                    resultText = `A - B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`;
+                    break;
+
+                case 'dot':
+                    const dotProduct = vectorA.x * vectorB.x + vectorA.y * vectorB.y;
+                    const magnitudeA = Math.sqrt(vectorA.x * vectorA.x + vectorA.y * vectorA.y);
+                    const magnitudeB = Math.sqrt(vectorB.x * vectorB.x + vectorB.y * vectorB.y);
+                    const angle = Math.acos(dotProduct / (magnitudeA * magnitudeB)) * 180 / Math.PI;
+                    resultText = `A · B = ${dotProduct.toFixed(2)} (кут = ${angle.toFixed(1)}°)`;
+                    showResult(resultText);
+                    drawScene();
+                    return;
+
+                case 'cross':
+                    const crossProduct = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
+                    resultText = `A × B = ${crossProduct.toFixed(2)} (в 2D це скалярне значення)`;
+                    showResult(resultText);
+                    drawScene();
+                    return;
+            }
+
+            showResult(resultText);
+            drawScene();
+        }
+
+        // Функція для очищення операцій
+        function clearOperations() {
+            currentOperation = null;
+            document.getElementById('resultDisplay').style.display = 'none';
+            drawScene();
+        }
+
+        // Функція для відображення результату
+        function showResult(text) {
+            const resultDisplay = document.getElementById('resultDisplay');
+            const resultText = document.getElementById('resultText');
+            
+            resultText.textContent = text;
+            resultDisplay.style.display = 'block';
+            
+            setTimeout(() => {
+                resultDisplay.style.display = 'none';
+            }, 8000);
+        }
+
+        // Функція для малювання сцени
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Малюємо координатну сітку
+            drawGrid();
+            
+            // Малюємо осі координат
+            drawAxes();
+            
+            // Малюємо вектори
+            if (vectorA) drawVector(vectorA, '#FF4444', 'A');
+            if (vectorB) drawVector(vectorB, '#4444FF', 'B');
+            
+            // Малюємо результат операції
+            if (currentOperation && vectorA && vectorB) {
+                drawOperation();
+            }
+        }
+
+        // Функція для малювання сітки
+        function drawGrid() {
+            ctx.strokeStyle = '#E0E0E0';
+            ctx.lineWidth = 0.5;
+            
+            const actualCenterX = centerX + panX;
+            const actualCenterY = centerY + panY;
+            
+            // Вертикальні лінії
+            for (let i = -20; i <= 20; i++) {
+                const x = actualCenterX + i * scale;
+                if (x >= 0 && x <= canvas.width) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+            }
+            
+            // Горизонтальні лінії
+            for (let i = -20; i <= 20; i++) {
+                const y = actualCenterY + i * scale;
+                if (y >= 0 && y <= canvas.height) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Функція для малювання осей
+        function drawAxes() {
+            const actualCenterX = centerX + panX;
+            const actualCenterY = centerY + panY;
+            
+            ctx.strokeStyle = '#333333';
+            ctx.lineWidth = 2;
+            
+            // Вісь X
+            ctx.beginPath();
+            ctx.moveTo(0, actualCenterY);
+            ctx.lineTo(canvas.width, actualCenterY);
+            ctx.stroke();
+            
+            // Вісь Y
+            ctx.beginPath();
+            ctx.moveTo(actualCenterX, 0);
+            ctx.lineTo(actualCenterX, canvas.height);
+            ctx.stroke();
+            
+            // Підписи осей
+            ctx.fillStyle = '#333333';
+            ctx.font = '16px Arial';
+            ctx.fillText('X', canvas.width - 20, actualCenterY - 10);
+            ctx.fillText('Y', actualCenterX + 10, 20);
+            ctx.fillText('O', actualCenterX + 5, actualCenterY + 15);
+            
+            // Числові позначки
+            ctx.font = '12px Arial';
+            for (let i = -10; i <= 10; i++) {
+                if (i === 0) continue;
+                
+                const x = actualCenterX + i * scale;
+                const y = actualCenterY + i * scale;
+                
+                if (x >= 0 && x <= canvas.width) {
+                    ctx.fillText(i.toString(), x - 5, actualCenterY + 15);
+                }
+                
+                if (y >= 0 && y <= canvas.height) {
+                    ctx.fillText((-i).toString(), actualCenterX + 5, y + 5);
+                }
+            }
+        }
+
+        // Функція для малювання вектора
+        function drawVector(vector, color, label) {
+            const actualCenterX = centerX + panX;
+            const actualCenterY = centerY + panY;
+            
+            const endX = actualCenterX + vector.x * scale;
+            const endY = actualCenterY - vector.y * scale; // Інвертуємо Y для правильного відображення
+            
+            // Малюємо лінію вектора
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(actualCenterX, actualCenterY);
+            ctx.lineTo(endX, endY);
+            ctx.stroke();
+            
+            // Малюємо стрілку
+            drawArrow(actualCenterX, actualCenterY, endX, endY, color);
+            
+            // Підпис вектора
+            ctx.fillStyle = color;
+            ctx.font = 'bold 14px Arial';
+            ctx.fillText(`${label}(${vector.x.toFixed(1)}, ${vector.y.toFixed(1)})`, 
+                        endX + 10, endY - 10);
+        }
+
+        // Функція для малювання стрілки
+        function drawArrow(fromX, fromY, toX, toY, color) {
+            const angle = Math.atan2(toY - fromY, toX - fromX);
+            const arrowLength = 15;
+            const arrowAngle = Math.PI / 6;
+            
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.moveTo(toX, toY);
+            ctx.lineTo(
+                toX - arrowLength * Math.cos(angle - arrowAngle),
+                toY - arrowLength * Math.sin(angle - arrowAngle)
+            );
+            ctx.lineTo(
+                toX - arrowLength * Math.cos(angle + arrowAngle),
+                toY - arrowLength * Math.sin(angle + arrowAngle)
+            );
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // Функція для малювання операцій
+        function drawOperation() {
+            const actualCenterX = centerX + panX;
+            const actualCenterY = centerY + panY;
+            
+            switch (currentOperation) {
+                case 'add':
+                    drawParallelogram();
+                    break;
+                case 'subtract':
+                    drawTriangle();
+                    break;
+            }
+        }
+
+        // Функція для малювання паралелограма
+        function drawParallelogram() {
+            const actualCenterX = centerX + panX;
+            const actualCenterY = centerY + panY;
+            
+            const endAX = actualCenterX + vectorA.x * scale;
+            const endAY = actualCenterY - vectorA.y * scale;
+            const endBX = actualCenterX + vectorB.x * scale;
+            const endBY = actualCenterY - vectorB.y * scale;
+            const resultX = actualCenterX + (vectorA.x + vectorB.x) * scale;
+            const resultY = actualCenterY - (vectorA.y + vectorB.y) * scale;
+            
+            // Допоміжні лінії (пунктирні)
+            ctx.strokeStyle = '#FFAA00';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            
+            // Лінія від кінця A до результату (паралельна B)
+            ctx.beginPath();
+            ctx.moveTo(endAX, endAY);
+            ctx.lineTo(resultX, resultY);
+            ctx.stroke();
+            
+            // Лінія від кінця B до результату (паралельна A)
+            ctx.beginPath();
+            ctx.moveTo(endBX, endBY);
+            ctx.lineTo(resultX, resultY);
+            ctx.stroke();
+            
+            ctx.setLineDash([]);
+            
+            // Результуючий вектор
+            const result = { x: vectorA.x + vectorB.x, y: vectorA.y + vectorB.y };
+            drawVector(result, '#44FF44', 'A+B');
+        }
+
+        // Функція для малювання трикутника
+        function drawTriangle() {
+            const actualCenterX = centerX + panX;
+            const actualCenterY = centerY + panY;
+            
+            const endAX = actualCenterX + vectorA.x * scale;
+            const endAY = actualCenterY - vectorA.y * scale;
+            const resultX = actualCenterX + (vectorA.x - vectorB.x) * scale;
+            const resultY = actualCenterY - (vectorA.y - vectorB.y) * scale;
+            
+            // Малюємо -B від кінця A
+            const negB = { x: -vectorB.x, y: -vectorB.y };
+            ctx.strokeStyle = '#FF44FF';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([3, 3]);
+            
+            ctx.beginPath();
+            ctx.moveTo(endAX, endAY);
+            ctx.lineTo(resultX, resultY);
+            ctx.stroke();
+            
+            drawArrow(endAX, endAY, resultX, resultY, '#FF44FF');
+            
+            ctx.setLineDash([]);
+            
+            // Підпис -B
+            ctx.fillStyle = '#FF44FF';
+            ctx.font = '12px Arial';
+            ctx.fillText('-B', (endAX + resultX) / 2 + 10, (endAY + resultY) / 2);
+            
+            // Результуючий вектор
+            const result = { x: vectorA.x - vectorB.x, y: vectorA.y - vectorB.y };
+            drawVector(result, '#44FF44', 'A-B');
+        }
+    </script>
+</body>
+</html>
