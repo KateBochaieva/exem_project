@@ -82,6 +82,11 @@
             color: white;
         }
         
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+        
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
@@ -102,9 +107,9 @@
             <div class="control-group">
                 <h3>🔴 Вектор A</h3>
                 <div class="vector-input">
-                    <input type="number" id="ax" value="3" placeholder="X" step="0.1">
-                    <input type="number" id="ay" value="2" placeholder="Y" step="0.1">
-                    <input type="number" id="az" value="1" placeholder="Z" step="0.1">
+                    <input type="number" id="ax" value="" placeholder="X" step="0.1">
+                    <input type="number" id="ay" value="" placeholder="Y" step="0.1">
+                    <input type="number" id="az" value="" placeholder="Z" step="0.1">
                 </div>
                 <button class="btn btn-primary" onclick="updateVector('A')">Оновити A</button>
             </div>
@@ -112,19 +117,20 @@
             <div class="control-group">
                 <h3>🔵 Вектор B</h3>
                 <div class="vector-input">
-                    <input type="number" id="bx" value="1" placeholder="X" step="0.1">
-                    <input type="number" id="by" value="3" placeholder="Y" step="0.1">
-                    <input type="number" id="bz" value="2" placeholder="Z" step="0.1">
+                    <input type="number" id="bx" value="" placeholder="X" step="0.1">
+                    <input type="number" id="by" value="" placeholder="Y" step="0.1">
+                    <input type="number" id="bz" value="" placeholder="Z" step="0.1">
                 </div>
                 <button class="btn btn-primary" onclick="updateVector('B')">Оновити B</button>
             </div>
             
             <div class="control-group">
-                <h3>⚡ Операції</h3>
-                <button class="btn btn-secondary" onclick="performOperation('add')">A + B</button>
-                <button class="btn btn-secondary" onclick="performOperation('subtract')">A - B</button>
-                <button class="btn btn-secondary" onclick="performOperation('multiply')">A * B</button>
-                <button class="btn btn-secondary" onclick="performOperation('divide')">A / B</button>
+                <h3>⚡ Векторні операції</h3>
+                <button class="btn btn-secondary" onclick="performOperation('add')">A + B (Паралелограм)</button>
+                <button class="btn btn-secondary" onclick="performOperation('subtract')">A - B (Трикутник)</button>
+                <button class="btn btn-secondary" onclick="performOperation('dot')">A · B (Скалярний)</button>
+                <button class="btn btn-secondary" onclick="performOperation('cross')">A × B (Векторний)</button>
+                <button class="btn btn-danger" onclick="clearOperations()">Очистити</button>
             </div>
         </div>
         
@@ -162,22 +168,22 @@
         <!-- Координатна сітка -->
         <a-grid position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#333366"></a-grid>
 
-        <!-- Вектор A -->
-        <a-entity id="vectorA">
+        <!-- Вектор A (з початку координат) -->
+        <a-entity id="vectorA" visible="false">
             <a-entity id="vectorAGroup" position="0 0 0">
                 <a-cylinder position="0 0 0" radius="0.03" height="1" color="#ff4444"></a-cylinder>
                 <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.1" radius-top="0" height="0.3" color="#ff4444"></a-cone>
             </a-entity>
-            <a-text id="vectorALabel" value="A(3,2,1)" position="3.5 2.5 1" align="center" color="#ff4444"></a-text>
+            <a-text id="vectorALabel" value="A" position="0 0 0" align="center" color="#ff4444"></a-text>
         </a-entity>
 
-        <!-- Вектор B -->
-        <a-entity id="vectorB">
+        <!-- Вектор B (з початку координат) -->
+        <a-entity id="vectorB" visible="false">
             <a-entity id="vectorBGroup" position="0 0 0">
                 <a-cylinder position="0 0 0" radius="0.03" height="1" color="#4444ff"></a-cylinder>
                 <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.1" radius-top="0" height="0.3" color="#4444ff"></a-cone>
             </a-entity>
-            <a-text id="vectorBLabel" value="B(1,3,2)" position="1.5 3.5 2" align="center" color="#4444ff"></a-text>
+            <a-text id="vectorBLabel" value="B" position="0 0 0" align="center" color="#4444ff"></a-text>
         </a-entity>
 
         <!-- Результуючий вектор -->
@@ -187,6 +193,24 @@
                 <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.12" radius-top="0" height="0.4" color="#44ff44"></a-cone>
             </a-entity>
             <a-text id="resultLabel" value="" position="0 0 0" align="center" color="#44ff44"></a-text>
+        </a-entity>
+
+        <!-- Допоміжні лінії для операцій -->
+        <a-entity id="helperLines" visible="false">
+            <!-- Лінії для паралелограма -->
+            <a-entity id="parallelogramLines">
+                <a-cylinder id="helperLine1" radius="0.015" height="1" color="#ffff00" opacity="0.7"></a-cylinder>
+                <a-cylinder id="helperLine2" radius="0.015" height="1" color="#ffff00" opacity="0.7"></a-cylinder>
+            </a-entity>
+            
+            <!-- Додатковий вектор B для віднімання -->
+            <a-entity id="subtractHelper" visible="false">
+                <a-entity id="vectorBNegGroup" position="0 0 0">
+                    <a-cylinder position="0 0 0" radius="0.025" height="1" color="#ff44ff" opacity="0.8"></a-cylinder>
+                    <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.08" radius-top="0" height="0.25" color="#ff44ff" opacity="0.8"></a-cone>
+                </a-entity>
+                <a-text id="vectorBNegLabel" value="-B" position="0 0 0" align="center" color="#ff44ff"></a-text>
+            </a-entity>
         </a-entity>
 
         <!-- Камера з зумом -->
@@ -199,19 +223,18 @@
 
     <script>
         // Глобальні змінні
-        let vectorA = { x: 3, y: 2, z: 1 };
-        let vectorB = { x: 1, y: 3, z: 2 };
+        let vectorA = null;
+        let vectorB = null;
 
         // Ініціалізація після завантаження сцени
         document.addEventListener('DOMContentLoaded', function() {
-            updateVector('A');
-            updateVector('B');
+            // Не викликаємо updateVector при ініціалізації
             
             // Додаємо обробку зуму мишкою
             const sceneEl = document.querySelector('a-scene');
             sceneEl.addEventListener('loaded', function() {
                 const cameraEl = document.querySelector('[camera]');
-                let currentDistance = 12; // початкова відстань
+                let currentDistance = 12;
                 
                 sceneEl.addEventListener('wheel', function(e) {
                     e.preventDefault();
@@ -220,14 +243,10 @@
                     const minDistance = 3;
                     const maxDistance = 20;
                     
-                    // Змінюємо відстань в залежності від напрямку прокрутки
                     currentDistance += e.deltaY * zoomSpeed * 0.01;
                     currentDistance = Math.max(minDistance, Math.min(maxDistance, currentDistance));
                     
-                    // Отримуємо поточну позицію камери
                     const currentPos = cameraEl.getAttribute('position');
-                    
-                    // Розраховуємо нову позицію зберігаючи напрямок
                     const length = Math.sqrt(currentPos.x * currentPos.x + currentPos.y * currentPos.y + currentPos.z * currentPos.z);
                     const normalizedX = currentPos.x / length;
                     const normalizedY = currentPos.y / length;
@@ -256,21 +275,38 @@
                 z: parseFloat(document.getElementById(inputs.z).value) || 0
             };
 
+            // Перевіряємо чи всі координати введені
+            const allInputsFilled = vector.x !== 0 || vector.y !== 0 || vector.z !== 0;
+            
             if (vectorName === 'A') {
-                vectorA = vector;
+                vectorA = allInputsFilled ? vector : null;
             } else {
-                vectorB = vector;
+                vectorB = allInputsFilled ? vector : null;
             }
 
             updateVectorDisplay(vectorName);
-            hideResultVector();
+            clearOperations();
         }
 
-        // Функція для відображення вектора в 3D сцені
+        // Функція для відображення вектора в 3D сцені (з початку координат)
         function updateVectorDisplay(name) {
             const vector = name === 'A' ? vectorA : vectorB;
+            const vectorEntity = document.getElementById(`vector${name}`);
+            
+            // Якщо вектор не визначений, приховуємо його
+            if (!vector) {
+                vectorEntity.setAttribute('visible', false);
+                return;
+            }
+            
             const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
-            if (length === 0) return;
+            if (length === 0) {
+                vectorEntity.setAttribute('visible', false);
+                return;
+            }
+
+            // Показуємо вектор
+            vectorEntity.setAttribute('visible', true);
 
             const group = document.getElementById(`vector${name}Group`);
             const label = document.getElementById(`vector${name}Label`);
@@ -278,7 +314,7 @@
             // Розрахунок кута для правильної орієнтації
             const rotation = calculateRotationForVector(vector);
             
-            // Встановлюємо позицію групи в центрі вектора
+            // Встановлюємо позицію групи в центрі вектора (з початку координат)
             group.setAttribute('position', {x: vector.x/2, y: vector.y/2, z: vector.z/2});
             group.setAttribute('rotation', rotation);
             
@@ -291,7 +327,7 @@
             cone.setAttribute('position', {x: 0, y: length/2, z: 0});
 
             // Оновлення мітки
-            label.setAttribute('position', {x: vector.x + 0.5, y: vector.y + 0.5, z: vector.z});
+            label.setAttribute('position', {x: vector.x + 0.5, y: vector.y + 0.5, z: vector.z + 0.5});
             label.setAttribute('value', `${name}(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
         }
 
@@ -300,12 +336,10 @@
             const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
             if (length === 0) return { x: 0, y: 0, z: 0 };
 
-            // Нормалізований вектор
             const nx = vector.x / length;
             const ny = vector.y / length;
             const nz = vector.z / length;
 
-            // Розрахунок кутів для правильної орієнтації
             const rotX = -Math.asin(ny) * (180 / Math.PI);
             const rotY = Math.atan2(nx, nz) * (180 / Math.PI);
 
@@ -314,6 +348,12 @@
 
         // Функція для виконання операцій над векторами
         function performOperation(operation) {
+            // Перевіряємо чи обидва вектори визначені
+            if (!vectorA || !vectorB) {
+                showResult("Помилка: Спочатку введіть координати обох vectorів!");
+                return;
+            }
+
             let result;
             let resultText = '';
 
@@ -325,6 +365,7 @@
                         z: vectorA.z + vectorB.z
                     };
                     resultText = `A + B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)})`;
+                    showParallelogram(result);
                     break;
 
                 case 'subtract':
@@ -334,35 +375,100 @@
                         z: vectorA.z - vectorB.z
                     };
                     resultText = `A - B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)})`;
+                    showTriangle(result);
                     break;
 
-                case 'multiply':
-                    result = {
-                        x: vectorA.x * vectorB.x,
-                        y: vectorA.y * vectorB.y,
-                        z: vectorA.z * vectorB.z
-                    };
-                    resultText = `A * B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)})`;
-                    break;
+                case 'dot':
+                    const dotProduct = vectorA.x * vectorB.x + vectorA.y * vectorB.y + vectorA.z * vectorB.z;
+                    resultText = `A · B = ${dotProduct.toFixed(2)} (скалярний добуток)`;
+                    showResult(resultText);
+                    return;
 
-                case 'divide':
-                    // Перевірка на ділення на нуль
-                    if (vectorB.x === 0 || vectorB.y === 0 || vectorB.z === 0) {
-                        showResult("Помилка: ділення на нуль");
-                        return;
-                    }
+                case 'cross':
                     result = {
-                        x: vectorA.x / vectorB.x,
-                        y: vectorA.y / vectorB.y,
-                        z: vectorA.z / vectorB.z
+                        x: vectorA.y * vectorB.z - vectorA.z * vectorB.y,
+                        y: vectorA.z * vectorB.x - vectorA.x * vectorB.z,
+                        z: vectorA.x * vectorB.y - vectorA.y * vectorB.x
                     };
-                    resultText = `A / B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)})`;
+                    const crossMagnitude = Math.sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
+                    resultText = `A × B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)}) |A×B| = ${crossMagnitude.toFixed(2)}`;
+                    showResultVector(result, 'cross');
                     break;
             }
 
-            // Відображення результату
             showResult(resultText);
-            showResultVector(result, operation);
+        }
+
+        // Функція для показу паралелограма (додавання)
+        function showParallelogram(resultVector) {
+            const helperLines = document.getElementById('helperLines');
+            const helperLine1 = document.getElementById('helperLine1');
+            const helperLine2 = document.getElementById('helperLine2');
+            
+            helperLines.setAttribute('visible', true);
+
+            // Лінія від кінця A до результату (паралельна B)
+            const lengthB = Math.sqrt(vectorB.x * vectorB.x + vectorB.y * vectorB.y + vectorB.z * vectorB.z);
+            const rotationB = calculateRotationForVector(vectorB);
+            
+            helperLine1.setAttribute('position', {
+                x: vectorA.x + vectorB.x/2, 
+                y: vectorA.y + vectorB.y/2, 
+                z: vectorA.z + vectorB.z/2
+            });
+            helperLine1.setAttribute('rotation', rotationB);
+            helperLine1.setAttribute('height', lengthB);
+
+            // Лінія від кінця B до результату (паралельна A)
+            const lengthA = Math.sqrt(vectorA.x * vectorA.x + vectorA.y * vectorA.y + vectorA.z * vectorA.z);
+            const rotationA = calculateRotationForVector(vectorA);
+            
+            helperLine2.setAttribute('position', {
+                x: vectorB.x + vectorA.x/2, 
+                y: vectorB.y + vectorA.y/2, 
+                z: vectorB.z + vectorA.z/2
+            });
+            helperLine2.setAttribute('rotation', rotationA);
+            helperLine2.setAttribute('height', lengthA);
+
+            showResultVector(resultVector, 'add');
+        }
+
+        // Функція для показу трикутника (віднімання)
+        function showTriangle(resultVector) {
+            const helperLines = document.getElementById('helperLines');
+            const subtractHelper = document.getElementById('subtractHelper');
+            const vectorBNegGroup = document.getElementById('vectorBNegGroup');
+            const vectorBNegLabel = document.getElementById('vectorBNegLabel');
+            
+            helperLines.setAttribute('visible', true);
+            subtractHelper.setAttribute('visible', true);
+
+            // Показуємо -B вектор від кінця A
+            const negB = { x: -vectorB.x, y: -vectorB.y, z: -vectorB.z };
+            const lengthNegB = Math.sqrt(negB.x * negB.x + negB.y * negB.y + negB.z * negB.z);
+            const rotationNegB = calculateRotationForVector(negB);
+            
+            vectorBNegGroup.setAttribute('position', {
+                x: vectorA.x + negB.x/2, 
+                y: vectorA.y + negB.y/2, 
+                z: vectorA.z + negB.z/2
+            });
+            vectorBNegGroup.setAttribute('rotation', rotationNegB);
+            
+            const cylinder = vectorBNegGroup.querySelector('a-cylinder');
+            const cone = vectorBNegGroup.querySelector('a-cone');
+            cylinder.setAttribute('height', lengthNegB);
+            cone.setAttribute('position', {x: 0, y: lengthNegB/2, z: 0});
+
+            vectorBNegLabel.setAttribute('position', {
+                x: vectorA.x + negB.x + 0.5, 
+                y: vectorA.y + negB.y + 0.5, 
+                z: vectorA.z + negB.z + 0.5
+            });
+            vectorBNegLabel.setAttribute('value', `-B(${negB.x.toFixed(1)},${negB.y.toFixed(1)},${negB.z.toFixed(1)})`);
+
+            showResultVector(resultVector, 'subtract');
         }
 
         // Функція для відображення результуючого вектора
@@ -373,42 +479,43 @@
 
             const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
             if (length === 0) {
-                hideResultVector();
+                resultEntity.setAttribute('visible', false);
                 return;
             }
 
             resultEntity.setAttribute('visible', true);
 
-            // Розрахунок обертання
             const rotation = calculateRotationForVector(vector);
             
-            // Встановлюємо позицію групи в центрі вектора
             resultGroup.setAttribute('position', {x: vector.x/2, y: vector.y/2, z: vector.z/2});
             resultGroup.setAttribute('rotation', rotation);
             
-            // Оновлюємо довжину лінії
             const cylinder = resultGroup.querySelector('a-cylinder');
             cylinder.setAttribute('height', length);
             
-            // Встановлюємо стрілку на кінець лінії
             const cone = resultGroup.querySelector('a-cone');
             cone.setAttribute('position', {x: 0, y: length/2, z: 0});
 
-            // Оновлення мітки
             const operationSymbol = {
                 'add': '+', 
                 'subtract': '-', 
-                'multiply': '*', 
-                'divide': '/'
-            }[operation];
+                'cross': '×'
+            }[operation] || '';
             
-            resultLabel.setAttribute('position', {x: vector.x + 0.5, y: vector.y + 0.5, z: vector.z});
-            resultLabel.setAttribute('value', `A${operationSymbol}B(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
+            resultLabel.setAttribute('position', {x: vector.x + 0.5, y: vector.y + 0.5, z: vector.z + 0.5});
+            if (operation === 'cross') {
+                resultLabel.setAttribute('value', `A×B(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
+            } else {
+                resultLabel.setAttribute('value', `A${operationSymbol}B(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
+            }
         }
 
-        // Функція для приховування результуючого вектора
-        function hideResultVector() {
+        // Функція для очищення операцій
+        function clearOperations() {
             document.getElementById('resultVector').setAttribute('visible', false);
+            document.getElementById('helperLines').setAttribute('visible', false);
+            document.getElementById('subtractHelper').setAttribute('visible', false);
+            document.getElementById('resultDisplay').style.display = 'none';
         }
 
         // Функція для відображення результату
@@ -419,10 +526,9 @@
             resultText.textContent = text;
             resultDisplay.style.display = 'block';
             
-            // Автоматичне приховування через 7 секунд
             setTimeout(() => {
                 resultDisplay.style.display = 'none';
-            }, 7000);
+            }, 10000);
         }
     </script>
 </body>
