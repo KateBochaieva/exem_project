@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Векторна система</title>
+    <title>2D Векторна система (площина Oxy)</title>
     <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
     <style>
         body {
@@ -11,93 +11,136 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
         }
-        
+
         .ui-overlay {
-            position: fixed;
+            position: relative;
             top: 0;
             left: 0;
             right: 0;
             z-index: 1000;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
             color: white;
-            padding: 15px;
+            padding: 10px;
             backdrop-filter: blur(10px);
+            flex-shrink: 0;
         }
-        
+
         .controls {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            align-items: center;
+            gap: 8px;
+            align-items: flex-start; /* Align to top */
             justify-content: center;
         }
-        
+
         .control-group {
             background: rgba(255, 255, 255, 0.1);
             padding: 10px;
             border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            flex-grow: 1; /* Allow groups to grow */
+            min-width: 180px; /* Minimum width for groups */
+            max-width: 250px;
         }
-        
+
         .control-group h3 {
-            margin: 0 0 10px 0;
-            font-size: 14px;
+            margin: 0 0 8px 0;
+            font-size: 13px;
             color: #64b5f6;
             text-align: center;
         }
-        
+
         .vector-input {
             display: flex;
-            gap: 5px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
-        
+
         .vector-input input {
-            width: 50px;
+            width: 60px;
             padding: 5px;
             border: none;
             border-radius: 4px;
             background: rgba(255, 255, 255, 0.9);
             text-align: center;
+            font-weight: bold;
+            font-size: 13px;
         }
-        
+
         .btn {
-            padding: 8px 16px;
+            padding: 6px 12px;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: bold;
             transition: all 0.3s ease;
-            margin: 2px;
+            margin: 1px 0; /* Adjust margin */
             width: 100%;
         }
-        
+
         .btn-primary {
-            background: #2196F3;
+            background: linear-gradient(45deg, #2196F3, #42A5F5);
             color: white;
         }
-        
+
         .btn-secondary {
-            background: #FF9800;
+            background: linear-gradient(45deg, #FF9800, #FFB74D);
             color: white;
         }
-        
+
         .btn-danger {
-            background: #f44336;
+            background: linear-gradient(45deg, #f44336, #EF5350);
             color: white;
         }
-        
+
+        .btn-success {
+            background: linear-gradient(45deg, #4CAF50, #66BB6A);
+            color: white;
+        }
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
-        
+
         .result-display {
             background: rgba(76, 175, 80, 0.2);
             padding: 10px;
             border-radius: 8px;
-            margin-top: 10px;
+            margin-top: 8px;
             border-left: 4px solid #4CAF50;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .angle-info {
+            background: rgba(33, 150, 243, 0.2);
+            padding: 6px;
+            border-radius: 6px;
+            margin-top: 6px;
+            border-left: 3px solid #2196F3;
+            font-size: 11px;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: 8px;
+            font-size: 12px;
+            color: #ccc;
+            text-align: left;
+        }
+        .info-panel h4 {
+            margin: 0 0 5px 0;
+            color: #81d4fa;
+            font-size: 14px;
         }
     </style>
 </head>
@@ -107,23 +150,21 @@
             <div class="control-group">
                 <h3>🔴 Вектор A</h3>
                 <div class="vector-input">
-                    <input type="number" id="ax" value="" placeholder="X" step="0.1">
-                    <input type="number" id="ay" value="" placeholder="Y" step="0.1">
-                    <input type="number" id="az" value="" placeholder="Z" step="0.1">
+                    <input type="number" id="ax" value="" placeholder="X" step="0.5">
+                    <input type="number" id="ay" value="" placeholder="Y" step="0.5">
                 </div>
                 <button class="btn btn-primary" onclick="updateVector('A')">Оновити A</button>
             </div>
-            
+
             <div class="control-group">
                 <h3>🔵 Вектор B</h3>
                 <div class="vector-input">
-                    <input type="number" id="bx" value="" placeholder="X" step="0.1">
-                    <input type="number" id="by" value="" placeholder="Y" step="0.1">
-                    <input type="number" id="bz" value="" placeholder="Z" step="0.1">
+                    <input type="number" id="bx" value="" placeholder="X" step="0.5">
+                    <input type="number" id="by" value="" placeholder="Y" step="0.5">
                 </div>
                 <button class="btn btn-primary" onclick="updateVector('B')">Оновити B</button>
             </div>
-            
+
             <div class="control-group">
                 <h3>⚡ Векторні операції</h3>
                 <button class="btn btn-secondary" onclick="performOperation('add')">A + B (Паралелограм)</button>
@@ -132,404 +173,485 @@
                 <button class="btn btn-secondary" onclick="performOperation('cross')">A × B (Векторний)</button>
                 <button class="btn btn-danger" onclick="clearOperations()">Очистити</button>
             </div>
+
+            <div class="control-group">
+                <h3>🎯 Приклади</h3>
+                <button class="btn btn-success" onclick="setExample(1)">A(3,2) B(1,4)</button>
+                <button class="btn btn-success" onclick="setExample(2)">A(-2,3) B(4,-1)</button>
+                <button class="btn btn-success" onclick="setExample(3)">A(5,0) B(0,3)</button>
+                <button class="btn btn-success" onclick="setExample(4)">A(2,2) B(-2,2)</button>
+            </div>
+             <div class="control-group info-panel" style="width: 100%; max-width: none;">
+                <h4>ℹ️ Інформація та керування</h4>
+                <ul>
+                    <li>Початок координат: **(0,0)**</li>
+                    <li>**ЛКМ (затиснути)** + **рух миші**: Обертання сцени</li>
+                    <li>**Колесо миші**: Збільшення/зменшення (масштабування)</li>
+                    <li>**ПКМ (затиснути)** + **рух миші**: Панорамування (переміщення) сцени</li>
+                </ul>
+            </div>
         </div>
-        
+
+
         <div class="result-display" id="resultDisplay" style="display: none;">
             <strong>Результат:</strong> <span id="resultText"></span>
+            <div class="angle-info" id="angleInfo" style="display: none;"></div>
         </div>
     </div>
 
-    <a-scene embedded style="height: 100vh;" background="color: #0a0a1a" vr-mode-ui="enabled: false">
-        <!-- Освітлення -->
-        <a-light type="ambient" color="#404040" intensity="0.4"></a-light>
-        <a-light type="directional" position="2 4 5" color="#ffffff" intensity="0.8"></a-light>
+    <a-scene embedded style="height: 100%; flex: 1;" background="color: #0f1419" vr-mode-ui="enabled: false">
+        <a-assets>
+            <img id="dashedTexture" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAABCAYAAAD5le38AAAACXBIWXMAAAsTAAALEwEAmpwYAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAuSURBVBgYK3h4ePj/n+L/P2BgYGD4z8DAwMDABjBVAwMjA4wRDAwMDAwAF7oGjR6z32IAAAAASUVORK5CYCC">
+        </a-assets>
 
-        <!-- Координатні осі -->
+        <a-light type="ambient" color="#505050" intensity="0.6"></a-light>
+        <a-light type="directional" position="5 8 5" color="#ffffff" intensity="0.8"></a-light>
+
+        <a-entity id="coordinateGrid">
+            <a-plane position="0 0 0" rotation="0 0 0" width="20" height="20"
+                     color="#1a1a2e" opacity="0.3"></a-plane>
+
+            <a-entity id="gridLines"></a-entity>
+        </a-entity>
+
         <a-entity id="axes">
-            <!-- Вісь X (червона) -->
-            <a-cylinder position="2.5 0 0" rotation="0 0 90" radius="0.02" height="5" color="#ff3333"></a-cylinder>
-            <a-cone position="5 0 0" rotation="0 0 -90" radius-bottom="0.1" radius-top="0" height="0.3" color="#ff3333"></a-cone>
-            <a-text value="X" position="5.5 0 0" align="center" color="#ff3333" scale="1.5 1.5 1.5"></a-text>
+            <a-cylinder position="5 0 0" rotation="0 0 -90" radius="0.025" height="10" color="#ff4444"></a-cylinder>
+            <a-cone position="10 0 0" rotation="0 0 -90" radius-bottom="0.12" radius-top="0" height="0.4" color="#ff4444"></a-cone>
+            <a-text value="X" position="10.5 0.5 0" align="center" color="#ff4444" scale="2 2 2"></a-text>
 
-            <!-- Вісь Y (зелена) -->
-            <a-cylinder position="0 2.5 0" radius="0.02" height="5" color="#33ff33"></a-cylinder>
-            <a-cone position="0 5 0" radius-bottom="0.1" radius-top="0" height="0.3" color="#33ff33"></a-cone>
-            <a-text value="Y" position="0 5.5 0" align="center" color="#33ff33" scale="1.5 1.5 1.5"></a-text>
+            <a-cylinder position="0 5 0" rotation="0 0 0" radius="0.025" height="10" color="#4444ff"></a-cylinder>
+            <a-cone position="0 10 0" rotation="0 0 0" radius-bottom="0.12" radius-top="0" height="0.4" color="#4444ff"></a-cone>
+            <a-text value="Y" position="0.5 10.5 0" align="center" color="#4444ff" scale="2 2 2"></a-text>
 
-            <!-- Вісь Z (синя) -->
-            <a-cylinder position="0 0 2.5" rotation="90 0 0" radius="0.02" height="5" color="#3333ff"></a-cylinder>
-            <a-cone position="0 0 5" rotation="90 0 0" radius-bottom="0.1" radius-top="0" height="0.3" color="#3333ff"></a-cone>
-            <a-text value="Z" position="0 0 5.5" align="center" color="#3333ff" scale="1.5 1.5 1.5"></a-text>
+            <a-cylinder position="-5 0 0" rotation="0 0 -90" radius="0.015" height="10" color="#aa2222" opacity="0.6"></a-cylinder>
+            <a-cylinder position="0 -5 0" rotation="0 0 0" radius="0.015" height="10" color="#2222aa" opacity="0.6"></a-cylinder>
         </a-entity>
 
-        <!-- Центр координат -->
-        <a-sphere position="0 0 0" radius="0.1" color="#ffffff"></a-sphere>
+        <a-sphere position="0 0 0" radius="0.08" color="#ffffff"></a-sphere>
+        <a-text value="O" position="0.3 0.3 0" align="center" color="#ffffff" scale="1.5 1.5 1.5"></a-text>
 
-        <!-- Координатна сітка -->
-        <a-grid position="0 0 0" rotation="-90 0 0" width="10" height="10" color="#333366"></a-grid>
+        <a-entity id="axisLabels"></a-entity>
 
-        <!-- Вектор A (з початку координат) -->
         <a-entity id="vectorA" visible="false">
-            <a-entity id="vectorAGroup" position="0 0 0">
-                <a-cylinder position="0 0 0" radius="0.03" height="1" color="#ff4444"></a-cylinder>
-                <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.1" radius-top="0" height="0.3" color="#ff4444"></a-cone>
-            </a-entity>
-            <a-text id="vectorALabel" value="A" position="0 0 0" align="center" color="#ff4444"></a-text>
+            <a-cylinder class="vector-line" radius="0.04" height="1" color="#ff4444"></a-cylinder>
+            <a-cone class="vector-arrow" radius-bottom="0.12" radius-top="0" height="0.3" color="#ff4444"></a-cone>
+            <a-text class="vector-label" value="A" align="center" color="#ff4444" scale="1.5 1.5 1.5"></a-text>
         </a-entity>
 
-        <!-- Вектор B (з початку координат) -->
         <a-entity id="vectorB" visible="false">
-            <a-entity id="vectorBGroup" position="0 0 0">
-                <a-cylinder position="0 0 0" radius="0.03" height="1" color="#4444ff"></a-cylinder>
-                <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.1" radius-top="0" height="0.3" color="#4444ff"></a-cone>
-            </a-entity>
-            <a-text id="vectorBLabel" value="B" position="0 0 0" align="center" color="#4444ff"></a-text>
+            <a-cylinder class="vector-line" radius="0.04" height="1" color="#4444ff"></a-cylinder>
+            <a-cone class="vector-arrow" radius-bottom="0.12" radius-top="0" height="0.3" color="#4444ff"></a-cone>
+            <a-text class="vector-label" value="B" align="center" color="#4444ff" scale="1.5 1.5 1.5"></a-text>
         </a-entity>
 
-        <!-- Результуючий вектор -->
         <a-entity id="resultVector" visible="false">
-            <a-entity id="resultGroup" position="0 0 0">
-                <a-cylinder position="0 0 0" radius="0.04" height="1" color="#44ff44"></a-cylinder>
-                <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.12" radius-top="0" height="0.4" color="#44ff44"></a-cone>
-            </a-entity>
-            <a-text id="resultLabel" value="" position="0 0 0" align="center" color="#44ff44"></a-text>
+            <a-cylinder class="vector-line" radius="0.05" height="1" color="#44ff44"></a-cylinder>
+            <a-cone class="vector-arrow" radius-bottom="0.15" radius-top="0" height="0.4" color="#44ff44"></a-cone>
+            <a-text id="resultLabel" class="vector-label" value="" align="center" color="#44ff44" scale="1.6 1.6 1.6"></a-text>
         </a-entity>
 
-        <!-- Допоміжні лінії для операцій -->
         <a-entity id="helperLines" visible="false">
-            <!-- Лінії для паралелограма -->
-            <a-entity id="parallelogramLines">
-                <a-cylinder id="helperLine1" radius="0.015" height="1" color="#ffff00" opacity="0.7"></a-cylinder>
-                <a-cylinder id="helperLine2" radius="0.015" height="1" color="#ffff00" opacity="0.7"></a-cylinder>
+            <a-entity id="helperLine1Group" visible="true">
+                <a-cylinder class="vector-line" radius="0.02" height="1" color="#ffaa00" opacity="0.8"></a-cylinder>
+                <a-cone class="vector-arrow" radius-bottom="0.1" radius-top="0" height="0.25" color="#ffaa00" opacity="0.8"></a-cone>
             </a-entity>
-            
-            <!-- Додатковий вектор B для віднімання -->
+
+            <a-entity id="helperLine2Group" visible="true">
+                <a-cylinder class="vector-line" radius="0.02" height="1" color="#ffaa00" opacity="0.8"></a-cylinder>
+                <a-cone class="vector-arrow" radius-bottom="0.1" radius-top="0" height="0.25" color="#ffaa00" opacity="0.8"></a-cone>
+            </a-entity>
+
             <a-entity id="subtractHelper" visible="false">
-                <a-entity id="vectorBNegGroup" position="0 0 0">
-                    <a-cylinder position="0 0 0" radius="0.025" height="1" color="#ff44ff" opacity="0.8"></a-cylinder>
-                    <a-cone position="0 0.5 0" rotation="0 0 0" radius-bottom="0.08" radius-top="0" height="0.25" color="#ff44ff" opacity="0.8"></a-cone>
-                </a-entity>
-                <a-text id="vectorBNegLabel" value="-B" position="0 0 0" align="center" color="#ff44ff"></a-text>
+                <a-cylinder class="vector-line" radius="0.03" height="1" color="#ffaa00" opacity="0.8"></a-cylinder>
+                <a-cone class="vector-arrow" radius-bottom="0.1" radius-top="0" height="0.25" color="#ffaa00" opacity="0.8"></a-cone>
+                <a-text id="vectorBNegLabel" class="vector-label" value="-B" align="center" color="#ffaa00" scale="1.3 1.3 1.3"></a-text>
             </a-entity>
         </a-entity>
 
-        <!-- Камера з зумом -->
-        <a-entity camera look-controls wasd-controls="enabled: false" position="8 6 8"
-                  orbit-controls="target: 0 0 0; enableDamping: true; dampingFactor: 0.25;
-                                 rotateSpeed: 0.5; zoomSpeed: 1; minDistance: 3; maxDistance: 20;
-                                 enableZoom: true; enablePan: false">
+        <a-entity id="angleIndicator" visible="false">
+            <a-torus id="angleArc" radius="1" radius-tubular="0.02"
+                     color="#ffff44" opacity="0.8" segments-radial="32" segments-tubular="8"></a-torus>
+            <a-text id="angleText" value="" align="center" color="#ffff44" scale="1.2 1.2 1.2"></a-text>
+        </a-entity>
+
+        <a-entity camera look-controls wasd-controls="enabled: false" position="0 0 15"
+                  orbit-controls="target: 0 0 0; enableDamping: true; dampingFactor: 0.15;
+                                 rotateSpeed: 0.7; zoomSpeed: 1.2; minDistance: 8; maxDistance: 30;
+                                 enableZoom: true; enablePan: true; maxPolarAngle: 1.5;">
         </a-entity>
     </a-scene>
 
     <script>
-        // Глобальні змінні
+        // Globalni zminni
         let vectorA = null;
         let vectorB = null;
+        let currentOperation = null;
 
-        // Ініціалізація після завантаження сцени
+        // Initsializatsiya pislya zavantazhennya stseny
         document.addEventListener('DOMContentLoaded', function() {
-            // Не викликаємо updateVector при ініціалізації
-            
-            // Додаємо обробку зуму мишкою
-            const sceneEl = document.querySelector('a-scene');
-            sceneEl.addEventListener('loaded', function() {
-                const cameraEl = document.querySelector('[camera]');
-                let currentDistance = 12;
-                
-                sceneEl.addEventListener('wheel', function(e) {
-                    e.preventDefault();
-                    
-                    const zoomSpeed = 0.5;
-                    const minDistance = 3;
-                    const maxDistance = 20;
-                    
-                    currentDistance += e.deltaY * zoomSpeed * 0.01;
-                    currentDistance = Math.max(minDistance, Math.min(maxDistance, currentDistance));
-                    
-                    const currentPos = cameraEl.getAttribute('position');
-                    const length = Math.sqrt(currentPos.x * currentPos.x + currentPos.y * currentPos.y + currentPos.z * currentPos.z);
-                    const normalizedX = currentPos.x / length;
-                    const normalizedY = currentPos.y / length;
-                    const normalizedZ = currentPos.z / length;
-                    
-                    const newPos = {
-                        x: normalizedX * currentDistance,
-                        y: normalizedY * currentDistance,
-                        z: normalizedZ * currentDistance
-                    };
-                    
-                    cameraEl.setAttribute('position', newPos);
-                });
-            });
+            setTimeout(() => {
+                createGrid();
+                createAxisLabels();
+            }, 100);
         });
 
-        // Функція для оновлення векторів
+        // Stvorennya координатної сітки
+        function createGrid() {
+            const gridContainer = document.getElementById('gridLines');
+
+            for (let i = -10; i <= 10; i++) {
+                if (i === 0) continue;
+
+                // Vertical lines (parallel to Y-axis)
+                const vertLine = document.createElement('a-plane');
+                vertLine.setAttribute('position', `${i} 0 0.001`); // Slightly offset Z to avoid Z-fighting with main plane
+                vertLine.setAttribute('width', '0.01');
+                vertLine.setAttribute('height', '20');
+                vertLine.setAttribute('color', '#333366');
+                vertLine.setAttribute('opacity', '0.4');
+                gridContainer.appendChild(vertLine);
+
+                // Horizontal lines (parallel to X-axis)
+                const horizLine = document.createElement('a-plane');
+                horizLine.setAttribute('position', `0 ${i} 0.001`); // Slightly offset Z
+                horizLine.setAttribute('width', '20');
+                horizLine.setAttribute('height', '0.01');
+                horizLine.setAttribute('color', '#333366');
+                horizLine.setAttribute('opacity', '0.4');
+                gridContainer.appendChild(horizLine);
+            }
+        }
+
+        // Stvorennya числових позначок на осях
+        function createAxisLabels() {
+            const labelsContainer = document.getElementById('axisLabels');
+
+            for (let i = -10; i <= 10; i++) {
+                if (i === 0) continue;
+
+                // Labels on X-axis
+                const xLabel = document.createElement('a-text');
+                xLabel.setAttribute('value', i.toString());
+                xLabel.setAttribute('position', `${i} -0.5 0.01`); // Slightly below X-axis, slightly in front of plane
+                xLabel.setAttribute('align', 'center');
+                xLabel.setAttribute('color', '#cccccc');
+                xLabel.setAttribute('scale', '1 1 1');
+                labelsContainer.appendChild(xLabel);
+
+                // Labels on Y-axis
+                const yLabel = document.createElement('a-text');
+                yLabel.setAttribute('value', i.toString());
+                yLabel.setAttribute('position', `-0.5 ${i} 0.01`); // Slightly to the left of Y-axis, slightly in front
+                yLabel.setAttribute('align', 'center');
+                yLabel.setAttribute('color', '#cccccc');
+                yLabel.setAttribute('scale', '1 1 1');
+                labelsContainer.appendChild(yLabel);
+            }
+        }
+
+        // Функція для оновлення векторів з UI
         function updateVector(vectorName) {
-            const inputs = vectorName === 'A' ? 
-                { x: 'ax', y: 'ay', z: 'az' } : 
-                { x: 'bx', y: 'by', z: 'bz' };
-            
+            const inputs = vectorName === 'A' ?
+                { x: 'ax', y: 'ay' } :
+                { x: 'bx', y: 'by' };
+
             const vector = {
                 x: parseFloat(document.getElementById(inputs.x).value) || 0,
-                y: parseFloat(document.getElementById(inputs.y).value) || 0,
-                z: parseFloat(document.getElementById(inputs.z).value) || 0
+                y: parseFloat(document.getElementById(inputs.y).value) || 0
             };
 
-            // Перевіряємо чи всі координати введені
-            const allInputsFilled = vector.x !== 0 || vector.y !== 0 || vector.z !== 0;
-            
+            const allInputsFilled = vector.x !== 0 || vector.y !== 0;
+
             if (vectorName === 'A') {
                 vectorA = allInputsFilled ? vector : null;
+                renderVector('vectorA', vectorA, 'A', '#ff4444', 0.04, 0.3, 0.12);
             } else {
                 vectorB = allInputsFilled ? vector : null;
+                renderVector('vectorB', vectorB, 'B', '#4444ff', 0.04, 0.3, 0.12);
             }
 
-            updateVectorDisplay(vectorName);
             clearOperations();
         }
 
-        // Функція для відображення вектора в 3D сцені (з початку координат)
-        function updateVectorDisplay(name) {
-            const vector = name === 'A' ? vectorA : vectorB;
-            const vectorEntity = document.getElementById(`vector${name}`);
-            
-            // Якщо вектор не визначений, приховуємо його
-            if (!vector) {
-                vectorEntity.setAttribute('visible', false);
-                return;
-            }
-            
-            const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
-            if (length === 0) {
+        // Функція для встановлення прикладів
+        function setExample(example) {
+            const examples = {
+                1: { a: [3, 2], b: [1, 4] },
+                2: { a: [-2, 3], b: [4, -1] },
+                3: { a: [5, 0], b: [0, 3] },
+                4: { a: [2, 2], b: [-2, 2] }
+            };
+
+            const ex = examples[example];
+            document.getElementById('ax').value = ex.a[0];
+            document.getElementById('ay').value = ex.a[1];
+            document.getElementById('bx').value = ex.b[0];
+            document.getElementById('by').value = ex.b[1];
+
+            updateVector('A');
+            updateVector('B');
+        }
+
+        /**
+         * Рендерить вектор в A-Frame сцені.
+         * @param {string} entityId - ID кореневого a-entity для вектора (e.g., 'vectorA').
+         * @param {object} vectorData - Об'єкт вектора {x, y}.
+         * @param {string} labelText - Текст мітки для вектора (e.g., 'A').
+         * @param {string} color - Колір вектора.
+         * @param {number} lineRadius - Радіус лінії вектора.
+         * @param {number} arrowHeight - Висота стрілки вектора.
+         * @param {number} arrowRadius - Радіус основи стрілки вектора.
+         * @param {string} material - Матеріал для лінії (наприклад, для пунктирних ліній).
+         * @param {number} startX - X-координата початку вектора (якщо не (0,0)).
+         * @param {number} startY - Y-координата початку вектора (якщо не (0,0)).
+         */
+        function renderVector(entityId, vectorData, labelText, color, lineRadius, arrowHeight, arrowRadius, material = '', startX = 0, startY = 0) {
+            const vectorEntity = document.getElementById(entityId);
+            if (!vectorEntity) return;
+
+            const line = vectorEntity.querySelector('.vector-line');
+            const arrow = vectorEntity.querySelector('.vector-arrow');
+            const label = vectorEntity.querySelector('.vector-label'); // Цей елемент може бути null для допоміжних ліній
+
+            if (!vectorData || (vectorData.x === 0 && vectorData.y === 0)) {
                 vectorEntity.setAttribute('visible', false);
                 return;
             }
 
-            // Показуємо вектор
             vectorEntity.setAttribute('visible', true);
 
-            const group = document.getElementById(`vector${name}Group`);
-            const label = document.getElementById(`vector${name}Label`);
+            const length = Math.sqrt(vectorData.x * vectorData.x + vectorData.y * vectorData.y);
+            // Кут відносно позитивної осі X, у градусах
+            const angleDeg = Math.atan2(vectorData.y, vectorData.x) * (180 / Math.PI);
 
-            // Розрахунок кута для правильної орієнтації
-            const rotation = calculateRotationForVector(vector);
-            
-            // Встановлюємо позицію групи в центрі вектора (з початку координат)
-            group.setAttribute('position', {x: vector.x/2, y: vector.y/2, z: vector.z/2});
-            group.setAttribute('rotation', rotation);
-            
-            // Оновлюємо довжину лінії
-            const cylinder = group.querySelector('a-cylinder');
-            cylinder.setAttribute('height', length);
-            
-            // Встановлюємо стрілку на кінець лінії
-            const cone = group.querySelector('a-cone');
-            cone.setAttribute('position', {x: 0, y: length/2, z: 0});
+            // Встановлюємо позицію кореневого a-entity на початок вектора
+            vectorEntity.setAttribute('position', `${startX} ${startY} 0`);
+            // Встановлюємо обертання всього a-entity
+            vectorEntity.setAttribute('rotation', `0 0 ${angleDeg}`); // Обертаємо групу по Z
 
-            // Оновлення мітки
-            label.setAttribute('position', {x: vector.x + 0.5, y: vector.y + 0.5, z: vector.z + 0.5});
-            label.setAttribute('value', `${name}(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
+            // Налаштовуємо лінію (cylinder)
+            line.setAttribute('height', length);
+            line.setAttribute('radius', lineRadius);
+            line.setAttribute('color', color);
+            line.setAttribute('position', `${length / 2} 0 0`); // Центр циліндра вздовж X осі батька
+            line.setAttribute('rotation', '0 0 -90'); // Циліндр за замовчуванням по Y, обертаємо його по X
+
+            // Налаштовуємо стрілку (cone)
+            arrow.setAttribute('height', arrowHeight);
+            arrow.setAttribute('radius-bottom', arrowRadius);
+            arrow.setAttribute('radius-top', '0');
+            arrow.setAttribute('color', color);
+            arrow.setAttribute('position', `${length} 0 0`); // В кінці лінії (уздовж X осі батька)
+            arrow.setAttribute('rotation', '0 0 -90'); // Обрізка на 90 градусів
+
+            // Налаштовуємо мітку (text) - ТІЛЬКИ ЯКЩО ВОНА ІСНУЄ
+            if (label) {
+                label.setAttribute('value', labelText || '');
+                const labelXOffset = 0.5;
+                const labelYOffset = 0.3;
+                label.setAttribute('position', `${length + labelXOffset} ${labelYOffset} 0.01`);
+                label.setAttribute('color', color);
+                label.setAttribute('rotation', `0 0 ${-angleDeg}`); // Обертаємо мітку назад, щоб вона була читабельною
+            }
+
+            if (material) {
+                line.setAttribute('material', material);
+            } else {
+                line.removeAttribute('material'); // Видаляємо матеріал, якщо не потрібен
+            }
         }
 
-        // Функція для розрахунку обертання вектора
-        function calculateRotationForVector(vector) {
-            const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
-            if (length === 0) return { x: 0, y: 0, z: 0 };
 
-            const nx = vector.x / length;
-            const ny = vector.y / length;
-            const nz = vector.z / length;
-
-            const rotX = -Math.asin(ny) * (180 / Math.PI);
-            const rotY = Math.atan2(nx, nz) * (180 / Math.PI);
-
-            return { x: rotX, y: rotY, z: 0 };
-        }
-
-        // Функція для виконання операцій над векторами
+        // Функція для виконання операцій
         function performOperation(operation) {
-            // Перевіряємо чи обидва вектори визначені
             if (!vectorA || !vectorB) {
-                showResult("Помилка: Спочатку введіть координати обох vectorів!");
+                showResult("Помилка: Спочатку введіть координати обох векторів!");
                 return;
             }
 
+            currentOperation = operation;
             let result;
             let resultText = '';
+            document.getElementById('angleInfo').style.display = 'none';
+            document.getElementById('angleIndicator').setAttribute('visible', false);
+            document.getElementById('helperLines').setAttribute('visible', false);
+            document.getElementById('subtractHelper').setAttribute('visible', false);
+            document.getElementById('resultVector').setAttribute('visible', false);
+            document.getElementById('helperLine1Group').setAttribute('visible', false);
+            document.getElementById('helperLine2Group').setAttribute('visible', false);
+
 
             switch (operation) {
                 case 'add':
                     result = {
                         x: vectorA.x + vectorB.x,
-                        y: vectorA.y + vectorB.y,
-                        z: vectorA.z + vectorB.z
+                        y: vectorA.y + vectorB.y
                     };
-                    resultText = `A + B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)})`;
+                    resultText = `A + B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`;
                     showParallelogram(result);
+                    renderVector('resultVector', result, `A+B(${result.x.toFixed(1)}, ${result.y.toFixed(1)})`, '#44ff44', 0.05, 0.4, 0.15);
                     break;
 
                 case 'subtract':
                     result = {
                         x: vectorA.x - vectorB.x,
-                        y: vectorA.y - vectorB.y,
-                        z: vectorA.z - vectorB.z
+                        y: vectorA.y - vectorB.y
                     };
-                    resultText = `A - B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)})`;
+                    resultText = `A - B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)})`;
                     showTriangle(result);
+                    renderVector('resultVector', result, `A-B(${result.x.toFixed(1)}, ${result.y.toFixed(1)})`, '#44ff44', 0.05, 0.4, 0.15);
                     break;
 
                 case 'dot':
-                    const dotProduct = vectorA.x * vectorB.x + vectorA.y * vectorB.y + vectorA.z * vectorB.z;
-                    resultText = `A · B = ${dotProduct.toFixed(2)} (скалярний добуток)`;
-                    showResult(resultText);
-                    return;
+                    const dotProduct = vectorA.x * vectorB.x + vectorA.y * vectorB.y;
+                    const magnitudeA = Math.sqrt(vectorA.x * vectorA.x + vectorA.y * vectorA.y);
+                    const magnitudeB = Math.sqrt(vectorB.x * vectorB.x + vectorB.y * vectorB.y);
+
+                    let angle = 0;
+                    if (magnitudeA > 0 && magnitudeB > 0) {
+                        angle = Math.acos(Math.min(1, Math.max(-1, dotProduct / (magnitudeA * magnitudeB)))) * 180 / Math.PI;
+                    }
+
+                    resultText = `A · B = ${dotProduct.toFixed(2)}`;
+
+                    const angleInfo = document.getElementById('angleInfo');
+                    angleInfo.innerHTML = `
+                        |A| = ${magnitudeA.toFixed(2)} | |B| = ${magnitudeB.toFixed(2)}<br>
+                        Кут між векторами: ${angle.toFixed(1)}°<br>
+                        cos(θ) = ${isNaN(dotProduct / (magnitudeA * magnitudeB)) ? 'N/A' : (dotProduct / (magnitudeA * magnitudeB)).toFixed(3)}
+                    `;
+                    angleInfo.style.display = 'block';
+
+                    showAngleIndicator(angle);
+                    break;
 
                 case 'cross':
-                    result = {
-                        x: vectorA.y * vectorB.z - vectorA.z * vectorB.y,
-                        y: vectorA.z * vectorB.x - vectorA.x * vectorB.z,
-                        z: vectorA.x * vectorB.y - vectorA.y * vectorB.x
-                    };
-                    const crossMagnitude = Math.sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
-                    resultText = `A × B = (${result.x.toFixed(2)}, ${result.y.toFixed(2)}, ${result.z.toFixed(2)}) |A×B| = ${crossMagnitude.toFixed(2)}`;
-                    showResultVector(result, 'cross');
+                    const crossProduct = vectorA.x * vectorB.y - vectorA.y * vectorB.x;
+                    resultText = `A × B = ${crossProduct.toFixed(2)} (в 2D це скалярне значення)`;
                     break;
             }
 
             showResult(resultText);
         }
 
-        // Функція для показу паралелограма (додавання)
-        function showParallelogram(resultVector) {
+        // Функція для показу паралелограма
+        function showParallelogram() {
             const helperLines = document.getElementById('helperLines');
-            const helperLine1 = document.getElementById('helperLine1');
-            const helperLine2 = document.getElementById('helperLine2');
-            
             helperLines.setAttribute('visible', true);
+            document.getElementById('subtractHelper').setAttribute('visible', false);
 
-            // Лінія від кінця A до результату (паралельна B)
-            const lengthB = Math.sqrt(vectorB.x * vectorB.x + vectorB.y * vectorB.y + vectorB.z * vectorB.z);
-            const rotationB = calculateRotationForVector(vectorB);
-            
-            helperLine1.setAttribute('position', {
-                x: vectorA.x + vectorB.x/2, 
-                y: vectorA.y + vectorB.y/2, 
-                z: vectorA.z + vectorB.z/2
-            });
-            helperLine1.setAttribute('rotation', rotationB);
-            helperLine1.setAttribute('height', lengthB);
+            // Helper line 1: from end of A, parallel to B
+            const helper1Vector = { x: vectorB.x, y: vectorB.y };
+            // Змінено колір допоміжних ліній на помаранчевий (#ffaa00)
+            renderVector('helperLine1Group', helper1Vector, '', '#ffaa00', 0.02, 0.25, 0.1, '', vectorA.x, vectorA.y);
 
-            // Лінія від кінця B до результату (паралельна A)
-            const lengthA = Math.sqrt(vectorA.x * vectorA.x + vectorA.y * vectorA.y + vectorA.z * vectorA.z);
-            const rotationA = calculateRotationForVector(vectorA);
-            
-            helperLine2.setAttribute('position', {
-                x: vectorB.x + vectorA.x/2, 
-                y: vectorB.y + vectorA.y/2, 
-                z: vectorB.z + vectorA.z/2
-            });
-            helperLine2.setAttribute('rotation', rotationA);
-            helperLine2.setAttribute('height', lengthA);
-
-            showResultVector(resultVector, 'add');
+            // Helper line 2: from end of B, parallel to A
+            const helper2Vector = { x: vectorA.x, y: vectorA.y };
+            // Змінено колір допоміжних ліній на помаранчевий (#ffaa00)
+            renderVector('helperLine2Group', helper2Vector, '', '#ffaa00', 0.02, 0.25, 0.1, '', vectorB.x, vectorB.y);
         }
 
         // Функція для показу трикутника (віднімання)
-        function showTriangle(resultVector) {
+        function showTriangle() {
             const helperLines = document.getElementById('helperLines');
-            const subtractHelper = document.getElementById('subtractHelper');
-            const vectorBNegGroup = document.getElementById('vectorBNegGroup');
-            const vectorBNegLabel = document.getElementById('vectorBNegLabel');
-            
             helperLines.setAttribute('visible', true);
-            subtractHelper.setAttribute('visible', true);
+            document.getElementById('helperLine1Group').setAttribute('visible', false);
+            document.getElementById('helperLine2Group').setAttribute('visible', false);
 
-            // Показуємо -B вектор від кінця A
-            const negB = { x: -vectorB.x, y: -vectorB.y, z: -vectorB.z };
-            const lengthNegB = Math.sqrt(negB.x * negB.x + negB.y * negB.y + negB.z * negB.z);
-            const rotationNegB = calculateRotationForVector(negB);
-            
-            vectorBNegGroup.setAttribute('position', {
-                x: vectorA.x + negB.x/2, 
-                y: vectorA.y + negB.y/2, 
-                z: vectorA.z + negB.z/2
-            });
-            vectorBNegGroup.setAttribute('rotation', rotationNegB);
-            
-            const cylinder = vectorBNegGroup.querySelector('a-cylinder');
-            const cone = vectorBNegGroup.querySelector('a-cone');
-            cylinder.setAttribute('height', lengthNegB);
-            cone.setAttribute('position', {x: 0, y: lengthNegB/2, z: 0});
-
-            vectorBNegLabel.setAttribute('position', {
-                x: vectorA.x + negB.x + 0.5, 
-                y: vectorA.y + negB.y + 0.5, 
-                z: vectorA.z + negB.z + 0.5
-            });
-            vectorBNegLabel.setAttribute('value', `-B(${negB.x.toFixed(1)},${negB.y.toFixed(1)},${negB.z.toFixed(1)})`);
-
-            showResultVector(resultVector, 'subtract');
+            // Display -B vector starting from the end of A
+            const negB = { x: -vectorB.x, y: -vectorB.y };
+            // Змінено колір допоміжних ліній на помаранчевий (#ffaa00)
+            renderVector('subtractHelper', negB, `-B(${negB.x}, ${negB.y})`, '#ffaa00', 0.03, 0.25, 0.1, '', vectorA.x, vectorA.y);
+            document.getElementById('subtractHelper').setAttribute('visible', true);
         }
 
-        // Функція для відображення результуючого вектора
-        function showResultVector(vector, operation) {
-            const resultEntity = document.getElementById('resultVector');
-            const resultGroup = document.getElementById('resultGroup');
-            const resultLabel = document.getElementById('resultLabel');
+        // Функція для показу індикатора кута
+        function showAngleIndicator(angle) {
+            const angleIndicator = document.getElementById('angleIndicator');
+            const angleArc = document.getElementById('angleArc');
+            const angleText = document.getElementById('angleText');
 
-            const length = Math.sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
-            if (length === 0) {
-                resultEntity.setAttribute('visible', false);
+            if (!vectorA || !vectorB) {
+                angleIndicator.setAttribute('visible', false);
                 return;
             }
 
-            resultEntity.setAttribute('visible', true);
+            // Calculate the start and end angles for the arc
+            const angleA_rad = Math.atan2(vectorA.y, vectorA.x);
+            const angleB_rad = Math.atan2(vectorB.y, vectorB.x);
 
-            const rotation = calculateRotationForVector(vector);
-            
-            resultGroup.setAttribute('position', {x: vector.x/2, y: vector.y/2, z: vector.z/2});
-            resultGroup.setAttribute('rotation', rotation);
-            
-            const cylinder = resultGroup.querySelector('a-cylinder');
-            cylinder.setAttribute('height', length);
-            
-            const cone = resultGroup.querySelector('a-cone');
-            cone.setAttribute('position', {x: 0, y: length/2, z: 0});
+            // Ensure the arc goes the "shortest" way
+            let startAngle = angleA_rad * (180 / Math.PI);
+            let endAngle = angleB_rad * (180 / Math.PI);
 
-            const operationSymbol = {
-                'add': '+', 
-                'subtract': '-', 
-                'cross': '×'
-            }[operation] || '';
-            
-            resultLabel.setAttribute('position', {x: vector.x + 0.5, y: vector.y + 0.5, z: vector.z + 0.5});
-            if (operation === 'cross') {
-                resultLabel.setAttribute('value', `A×B(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
-            } else {
-                resultLabel.setAttribute('value', `A${operationSymbol}B(${vector.x.toFixed(1)},${vector.y.toFixed(1)},${vector.z.toFixed(1)})`);
+            // Normalize angles to be between 0 and 360
+            startAngle = (startAngle + 360) % 360;
+            endAngle = (endAngle + 360) % 360;
+
+            let arcLength = endAngle - startAngle;
+            // Adjust arcLength to be the smaller angle
+            if (Math.abs(arcLength) > 180) {
+                 arcLength = 360 - Math.abs(arcLength);
+                 // If the original endAngle was clockwise from startAngle,
+                 // and we took the longer route, the new endAngle should be the original startAngle,
+                 // and the new startAngle should be the original endAngle.
+                 if (endAngle < startAngle) { // If original path was counter-clockwise over 180
+                    [startAngle, endAngle] = [endAngle, startAngle];
+                 }
             }
+
+
+            // Position the arc at origin
+            angleArc.setAttribute('position', `0 0 0.01`); // Slightly in front of the plane
+            angleArc.setAttribute('theta-start', startAngle);
+            angleArc.setAttribute('theta-length', arcLength);
+            angleArc.setAttribute('radius', '1.5');
+            angleArc.setAttribute('rotation', '0 0 0'); // No overall rotation of the torus entity itself
+
+            // Position the angle text in the middle of the arc
+            const midAngle_rad = (angleA_rad + angleB_rad) / 2;
+            const textRadius = 1.8; // Slightly larger than arc radius
+            const textX = textRadius * Math.cos(midAngle_rad);
+            const textY = textRadius * Math.sin(midAngle_rad);
+
+            angleText.setAttribute('position', `${textX} ${textY} 0.02`); // Keep text slightly in front of plane
+            angleText.setAttribute('value', `${angle.toFixed(1)}°`);
+            angleText.setAttribute('rotation', `0 0 ${-midAngle_rad * (180 / Math.PI)}`); // Rotate text to be readable
+
+            angleIndicator.setAttribute('visible', true);
+
+            setTimeout(() => {
+                angleIndicator.setAttribute('visible', false);
+            }, 8000);
         }
 
         // Функція для очищення операцій
         function clearOperations() {
+            currentOperation = null;
+            document.getElementById('resultDisplay').style.display = 'none';
+            document.getElementById('angleInfo').style.display = 'none';
             document.getElementById('resultVector').setAttribute('visible', false);
             document.getElementById('helperLines').setAttribute('visible', false);
             document.getElementById('subtractHelper').setAttribute('visible', false);
-            document.getElementById('resultDisplay').style.display = 'none';
+            document.getElementById('angleIndicator').setAttribute('visible', false);
+            document.getElementById('helperLine1Group').setAttribute('visible', false);
+            document.getElementById('helperLine2Group').setAttribute('visible', false);
         }
 
         // Функція для відображення результату
         function showResult(text) {
             const resultDisplay = document.getElementById('resultDisplay');
             const resultText = document.getElementById('resultText');
-            
+
             resultText.textContent = text;
             resultDisplay.style.display = 'block';
-            
+
             setTimeout(() => {
                 resultDisplay.style.display = 'none';
-            }, 10000);
+                document.getElementById('angleInfo').style.display = 'none';
+            }, 8000);
         }
     </script>
+    <script src="https://unpkg.com/aframe-orbit-controls/dist/aframe-orbit-controls.min.js"></script>
 </body>
 </html>
