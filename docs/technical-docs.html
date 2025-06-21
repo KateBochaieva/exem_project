@@ -66,7 +66,6 @@
       <li>Візуалізувати вектори A і B, їх суму A + B;</li>
       <li>Побудувати і знайти різницю A - B;</li>
       <li>Розрахувати та вивести скалярний добуток A • B;</li>
-      <li>Побудувати ділення A / B;</li>
       <li>Застосувати A-Frame і Three.js для реалізації логіки.</li>
     </ul>
   </section>
@@ -80,16 +79,139 @@
     </ul>
   </section>
 
-  <section>
-    <h2>Реалізація сцени</h2>
-    <ul>
-      <li>Усі обчислення виконуються у компоненті <code>vector-demo</code>;</li>
-      <li>Вектори реалізовано як лінії від початку координат до вказаної точки;</li>
-      <li>Кожен вектор має свій колір та мітку;</li>
-      <li>Результат виводиться у вигляді тексту і результуючого вектора.</li>
-    </ul>
-  </section>
+ <div class="container">
+        <h1>Технічна Документація: 2D Векторна Система</h1>
+        <p>Цей документ описує внутрішню архітектуру та реалізацію інтерактивної 2D векторної системи.</p>
 
+        <h2>1. Загальний Огляд</h2>
+        <p>Додаток розроблено на основі фреймворку <a href="https://aframe.io/" target="_blank">A-Frame</a> для візуалізації 3D-сцени в браузері. Інтерактивність забезпечується за допомогою стандартних HTML, CSS та JavaScript. Система дозволяє користувачеві вводити 2D вектори (на площині XY), виконувати над ними базові операції та візуально спостерігати результати.</p>
+
+        <h2>2. Структура Файлу <code>222.html</code></h2>
+        <p>Файл поділений на дві основні частини:</p>
+        <ul>
+            <li><strong>UI (User Interface) Оверлей:</strong> Секція <code>&lt;div class="ui-overlay"&gt;</code>, яка містить всі HTML-елементи керування (поля вводу, кнопки, панелі інформації). Стилізована за допомогою CSS для фіксованої позиції зверху екрану.</li>
+            <li><strong>A-Frame Сцена:</strong> Секція <code>&lt;a-scene&gt;</code>, де відбувається вся 3D-візуалізація векторів та координатної системи.</li>
+        </ul>
+
+        <h2>3. 3D Сцена (A-Frame Компоненти)</h2>
+        <p>Основними компонентами сцени є:</p>
+        
+        <h3>3.1. Освітлення</h3>
+        <p>Використовується комбінація <code>ambient</code> (розсіяне) та <code>directional</code> (спрямоване) світло для забезпечення достатньої видимості об'єктів.</p>
+        <div class="code-snippet"><pre><code>&lt;a-light type="ambient" color="#505050" intensity="0.6"&gt;&lt;/a-light&gt;
+&lt;a-light type="directional" position="5 8 5" color="#ffffff" intensity="0.8"&gt;&lt;/a-light&gt;</code></pre></div>
+
+        <h3>3.2. Координатна Площина та Сітка</h3>
+        <ul>
+            <li><code>&lt;a-plane&gt;</code>: Основна площина (XY), що слугує підлогою.</li>
+            <li><code>&lt;a-entity id="gridLines"&gt;</code>: Контейнер для програмно створених ліній сітки. Лінії створюються за допомогою <code>&lt;a-plane&gt;</code> з малою шириною/висотою.</li>
+        </ul>
+
+        <h3>3.3. Координатні Осі</h3>
+        <p>Осі X (червона) та Y (синя) представлені <code>&lt;a-cylinder&gt;</code> для ліній та <code>&lt;a-cone&gt;</code> для стрілок. Від'ємні частини осей мають менший радіус та прозорість для візуального розрізнення.</p>
+        <ul>
+            <li>Вісь X: <code>color="#ff4444"</code></li>
+            <li>Вісь Y: <code>color="#4444ff"</code></li>
+            <li>Центр координат <code>(0,0)</code>: Візуалізується як <code>&lt;a-sphere&gt;</code> та <code>&lt;a-text&gt;</code>.</li>
+            <li>Числові позначки на осях: Створюються програмно у функції <code>createAxisLabels()</code> як <code>&lt;a-text&gt;</code>.</li>
+        </ul>
+
+        <h3>3.4. Вектори (A, B, Результуючий)</h3>
+        <p>Кожен вектор є групою <code>&lt;a-entity&gt;</code>, що містить:</p>
+        <ul>
+            <li><code>&lt;a-cylinder class="vector-line"&gt;</code>: Тіло вектора.</li>
+            <li><code>&lt;a-cone class="vector-arrow"&gt;</code>: Стрілка вектора.</li>
+            <li><code>&lt;a-text class="vector-label"&gt;</code>: Мітка вектора (наприклад, "A", "B", "A+B").</li>
+        </ul>
+        <p><strong>Кольори:</strong> Вектор A (червоний), Вектор B (синій), Результуючий вектор (зелений).</p>
+
+        <h3>3.5. Допоміжні Лінії</h3>
+        <p>Використовуються для візуалізації побудов паралелограма та трикутника. Вони також складаються з <code>&lt;a-cylinder&gt;</code> та <code>&lt;a-cone&gt;</code>.</p>
+        <ul>
+            <li><strong>Колір:</strong> <code>#ffaa00</code> (помаранчевий) для кращого контрасту та візуального розрізнення від основних векторів та індикатора кута.</li>
+            <li><strong>Особливість:</strong> Ці лінії є суцільними, оскільки реалізація пунктирних ліній для <code>a-cylinder</code> в A-Frame вимагає складніших шейдерів або текстур, які не були інтегровані для динамічної зміни кольору без перевизначення текстури.</li>
+        </ul>
+
+        <h3>3.6. Індикатор Кута</h3>
+        <p>Відображається під час скалярного добутку. Складається з:</p>
+        <ul>
+            <li><code>&lt;a-torus id="angleArc"&gt;</code>: Дуга, що показує кут.</li>
+            <li><code>&lt;a-text id="angleText"&gt;</code>: Текстове значення кута.</li>
+            <li><strong>Колір:</strong> Жовтий (<code>#ffff44</code>).</li>
+        </ul>
+
+        <h3>3.7. Камера</h3>
+        <p>Використовує компонент <code>aframe-orbit-controls</code> для зручної навігації сценою (обертання, масштабування, панорамування).</p>
+        <div class="code-snippet"><pre><code>&lt;a-entity camera look-controls wasd-controls="enabled: false" position="0 0 15"
+                  orbit-controls="target: 0 0 0; enableDamping: true; dampingFactor: 0.15;
+                                 rotateSpeed: 0.7; zoomSpeed: 1.2; minDistance: 8; maxDistance: 30;
+                                 enableZoom: true; enablePan: true; maxPolarAngle: 1.5;"&gt;
+&lt;/a-entity&gt;</code></pre></div>
+
+        <h2>4. JavaScript Логіка</h2>
+        <p>Основні функції JavaScript, що відповідають за функціональність:</p>
+        
+        <h3>4.1. Ініціалізація та Структура</h3>
+        <ul>
+            <li><code>document.addEventListener('DOMContentLoaded', function() { ... });</code>: Забезпечує запуск скриптів після повного завантаження DOM.</li>
+            <li><code>createGrid()</code>: Динамічно створює лінії сітки (<code>&lt;a-plane&gt;</code>) на сцені.</li>
+            <li><code>createAxisLabels()</code>: Додає числові позначки до осей X та Y.</li>
+        </ul>
+
+        <h3>4.2. Керування Векторами</h3>
+        <ul>
+            <li><code>updateVector(vectorName)</code>: Зчитує значення X, Y з полів вводу та оновлює глобальні об'єкти <code>vectorA</code> або <code>vectorB</code>. Викликає <code>renderVector()</code>.</li>
+            <li><code>setExample(example)</code>: Завантажує попередньо визначені координати векторів у поля вводу та оновлює їх візуалізацію.</li>
+            <li><code>renderVector(entityId, vectorData, labelText, color, lineRadius, arrowHeight, arrowRadius, material = '', startX = 0, startY = 0)</code>:
+                <ul>
+                    <li>Ключова функція для візуалізації будь-якого вектора.</li>
+                    <li>Обчислює довжину та кут вектора (<code>Math.sqrt</code>, <code>Math.atan2</code>).</li>
+                    <li>Встановлює атрибути <code>height</code>, <code>radius</code>, <code>position</code>, <code>rotation</code> для <code>a-cylinder</code> (лінії) та <code>a-cone</code> (стрілки).</li>
+                    <li>Обертає мітку вектора назад, щоб вона завжди була читабельною (компенсація обертання батьківського <code>a-entity</code>).</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h3>4.3. Векторні Операції</h3>
+        <ul>
+            <li><code>performOperation(operation)</code>:
+                <ul>
+                    <li>Центральний обробник для кнопок операцій.</li>
+                    <li>Виконує математичні розрахунки залежно від операції (додавання, віднімання, скалярний добуток, векторний добуток).</li>
+                    <li>Викликає відповідні функції для візуалізації (<code>showParallelogram</code>, <code>showTriangle</code>, <code>showAngleIndicator</code>).</li>
+                    <li>Оновлює панель результатів.</li>
+                </ul>
+            </li>
+            <li><code>showParallelogram()</code>:
+                <ul>
+                    <li>Використовує <code>renderVector()</code> для створення двох допоміжних помаранчевих ліній: одна паралельна B (починається від кінця A), інша паралельна A (починається від кінця B).</li>
+                </ul>
+            </li>
+            <li><code>showTriangle()</code>:
+                <ul>
+                    <li>Використовує <code>renderVector()</code> для створення допоміжного помаранчевого вектора <code>-B</code>, що починається від кінця вектора A.</li>
+                </ul>
+            </li>
+            <li><code>showAngleIndicator(angle)</code>:
+                <ul>
+                    <li>Обчислює початковий та кінцевий кути для дуги (<code>a-torus</code>) на основі векторів A та B.</li>
+                    <li>Візуалізує дугу та текстове значення кута.</li>
+                </ul>
+            </li>
+            <li><code>clearOperations()</code>: Приховує всі елементи, пов'язані з візуалізацією операцій та результатами.</li>
+            <li><code>showResult(text)</code>: Відображає текстовий результат операції в UI.</li>
+        </ul>
+
+        <h2>5. Математичні Розрахунки</h2>
+        <p>У JavaScript використовуються стандартні математичні функції для векторних операцій:</p>
+        <ul>
+            <li><strong>Довжина вектора:</strong> <code>Math.sqrt(x*x + y*y)</code></li>
+            <li><strong>Кут вектора (відносно осі X):</strong> <code>Math.atan2(y, x) * (180 / Math.PI)</code></li>
+            <li><strong>Скалярний добуток:</strong> <code>A.x * B.x + A.y * B.y</code></li>
+            <li><strong>Кут між векторами (з скалярного добутку):</strong> <code>Math.acos(dotProduct / (magnitudeA * magnitudeB))</code></li>
+            <li><strong>Векторний добуток (2D):</strong> <code>A.x * B.y - A.y * B.x</code> (це скалярна величина, що відповідає z-компоненті 3D векторного добутку).</li>
+        </ul>
+    </div>
   <section>
     <h2>Освітній результат</h2>
     <ul>
